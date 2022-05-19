@@ -20,8 +20,8 @@
 # Windows 환경설정
 
 GTX1650 그래픽 호환 버전
+
 # Cuda 11.5
-# ZED SDK 11.5
 
 CUDA 버전 확인 
 > >nvcc --version
@@ -32,6 +32,7 @@ CUDA 버전 확인
 cuda 11.5
 > https://developer.nvidia.com/cuda-11-5-0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exe_local
 
+# ZED SDK 11.5
 ZED_SDK (CUDA 11.X)
 > https://www.stereolabs.com/developers/release/
 > Program Files 폴더에서 ZED를 실행하려면 관리자 액세스 권한을 줘야한다
