@@ -37,16 +37,17 @@ ZED_SDK (CUDA 11.X)
 > https://www.stereolabs.com/developers/release/
 > Program Files 폴더에서 ZED를 실행하려면 관리자 액세스 권한을 줘야한다
 
-
+# PYTHON
 PYTHON
 > https://www.python.org/downloads/
 
+# Anaconda
 Anaconda3
 > https://www.anaconda.com/
 
 아나콘다에서 Zed 만들고
 
-#CMD
+# CMD
 > conda activate Zed
 > pip install cython numpy opencv-python pyopengl   
 
