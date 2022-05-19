@@ -4,7 +4,7 @@
 > # 프로젝트를위한 데이터수집 센서 개발
 > > ### 담당자 강대현, 황가온
 
-# main.py
+# main.py   
 ## Zed2 카메라 센서로 Left, Right, Depth, 거리배열를 저장하는 코드입니다   
 ### 저장 / 저장종료 : SpaceBar
 ### 프로그램 종료 : ESC   
@@ -45,15 +45,17 @@ PYTHON
 Anaconda3
 > https://www.anaconda.com/
 
-아나콘다에서 Zed 만들고
+먼저 미리 아나콘다에서 Zed를 만든후
 
-# CMD
-> conda activate Zed
+# PIP 라이브러리 설치
+> conda activate Zed   
 > pip install cython numpy opencv-python pyopengl   
+> cd C:\Program Files (x86)\ZED SDK   
+> python get_python_api.py
 
-> >cd C:\Program Files (x86)\ZED SDK   
-> >python get_python_api.py
+get_python_api.py는 ZED SDK의 의존하는 라이브러리를 설치해주는것이다 실행해주지 않으면 pyzed를 제대로 불러올수없다
 
 
 Check GPU memory
 > ndivia-smi
+
