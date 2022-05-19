@@ -24,7 +24,7 @@ GTX1650 그래픽 호환 버전
 # Cuda 11.5
 
 CUDA 버전 확인 
-> >nvcc --version
+> nvcc --version
 
 기존 CUDA 삭제
 > 프로그램 추가/제거 들어가서 NVIDIA에 관련된 프로그램을 모두 지운다.
