@@ -15,7 +15,8 @@
 >> Depth : saved_imgs/저장시작시간/depth_{str(count).zfill(4)}.jpg   
 >> 거리 : saved_imgs/저장시작시간/dis_{str(count).zfill(4)}.npz   
 
-
+# ver 1.0
+초기 개발 완료
 
 # Windows 환경설정
 
