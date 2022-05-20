@@ -10,10 +10,10 @@
 ### 프로그램 종료 : ESC   
 ```python
 > # 저장경로
->> Left : saved_imgs/저장시작시간/left_{str(count).zfill(4)}.jpg   
->> Right : saved_imgs/저장시작시간/right_{str(count).zfill(4)}.jpg   
->> Depth : saved_imgs/저장시작시간/depth_{str(count).zfill(4)}.jpg   
->> distance : saved_imgs/저장시작시간/dis_{str(count).zfill(4)}.npz   
+>> Left : saved_imgs/시간/left_{str(count).zfill(4)}.jpg   
+>> Right : saved_imgs/시간/right_{str(count).zfill(4)}.jpg   
+>> Depth : saved_imgs/시간/depth_{str(count).zfill(4)}.jpg   
+>> distance : saved_imgs/시간/dis_{str(count).zfill(4)}.npz   
 ```
 
 
