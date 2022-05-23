@@ -11,7 +11,8 @@ from queue import Queue
 zed = sl.Camera()
 runtime = sl.InitParameters()  # 객체 생성
 
-runtime.camera_resolution = sl.RESOLUTION.HD2K  # Use HD1080 video mode
+runtime.camera_resolution = sl.RESOLUTION.HD1080
+# runtime.camera_resolution = sl.RESOLUTION.HD2K  # Use HD1080 video mode
 runtime.camera_fps = 60  # Set fps at 60
 runtime.coordinate_units = sl.UNIT.METER
 runtime.depth_minimum_distance = 0.15
@@ -30,7 +31,7 @@ que = Queue()
 def distance_undefined(nd_array):
     nd_array[nd_array != nd_array] = 0
     nd_array[nd_array == np.float32('-inf')] = -1  #
-    nd_array[nd_array == np.float32('inf')] = 2000.0000
+    nd_array[nd_array == np.float32('inf')] = 4000.0000
     return nd_array
 
 
@@ -78,7 +79,11 @@ def record():
                 que.put({'dis': [os.path.join(path, f'distance_{str(count).zfill(4)}.npz'),
                                  distance_undefined(dis.get_data())]})
 
-                print(time.time() - start)
+                print(np.max(distance_undefined(dis.get_data())))
+                print(distance_undefined(dis.get_data()).shape)
+                print(left.get_data().shape)
+
+                # print(time.time() - start)
             count += 1
         else:
             count = 0
@@ -140,12 +145,12 @@ def main():
             if status:
                 frm_path = datetime.today().strftime('%Y%m%d_%H%M%S%f')
                 root_path = os.path.join(save_path, frm_path)
-                os.makedirs(root_path, exist_ok=True)  #  image dir
-                os.makedirs(root_path+"/convert", exist_ok=True)  # video dir
+                os.makedirs(root_path, exist_ok=True)  # image dir
+                os.makedirs(root_path + "/video", exist_ok=True)  # video dir
             else:
                 # print(root_path)
-                os.system("ffmpeg -f image2 -r 3 -i "+root_path+"/depth_%04d.jpg -vcodec"
-                          " mpeg4 -y "+root_path+"/video/depth_images_convert_video.mp4")
+                os.system(
+                    "ffmpeg -f image2 -r 8 -i " + root_path + "/depth_%04d.jpg -vcodec mpeg4 -y " + root_path + "/video/depth_images_convert_video.mp4")
                 count = 0
                 frm_path = ''
 
@@ -155,12 +160,10 @@ def main():
 
 
 if __name__ == "__main__":
+    que_thread = threading.Thread(target=file_writer, args=(), daemon=True)
+    que_thread.start()
     record_Thread = threading.Thread(target=record, args=(), daemon=True)
     record_Thread.start()
-
-    que_thread = threading.Thread(target=file_writer, args=())
-    que_thread.start()
-
     main()
     record_Thread.join()
     que_thread.join()
