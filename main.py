@@ -6,6 +6,7 @@ import threading
 from datetime import datetime
 import sys
 import time
+from queue import Queue
 
 zed = sl.Camera()
 runtime = sl.InitParameters()  # 객체 생성
@@ -23,9 +24,7 @@ save_path = 'saved_imgs'  # 저장 경로
 frm_path = ''  # 저장 날짜
 count = 0  # 저장 파일 카운트
 
-Left_queue = []
-Right_queue = []
-Depth_queue = []
+que = Queue()
 
 
 def distance_undefined(nd_array):
@@ -33,6 +32,19 @@ def distance_undefined(nd_array):
     nd_array[nd_array == np.float32('-inf')] = -1  #
     nd_array[nd_array == np.float32('inf')] = 2000.0000
     return nd_array
+
+
+def file_writer():
+    global que
+    while True:
+        if not que.empty():
+            que_dict = que.get()
+            for key, value in que_dict.items():
+                # print(value)
+                if key == "dis":
+                    np.savez(value[0], x=value[1])
+                else:
+                    cv2.imwrite(value[0], value[1])
 
 
 def record():
@@ -60,15 +72,13 @@ def record():
                 path = os.path.join(save_path, frm_path)
 
                 # Save image
+                que.put({'left': [os.path.join(path, f'left_{str(count).zfill(4)}.jpg'), left.get_data()]})
+                que.put({'right': [os.path.join(path, f'right_{str(count).zfill(4)}.jpg'), right.get_data()]})
+                que.put({'depth': [os.path.join(path, f'depth_{str(count).zfill(4)}.jpg'), depth.get_data()]})
+                que.put({'dis': [os.path.join(path, f'distance_{str(count).zfill(4)}.npz'),
+                                 distance_undefined(dis.get_data())]})
 
-                cv2.imwrite(os.path.join(path, f'left_{str(count).zfill(4)}.jpg'), left.get_data())  # to do def
-                cv2.imwrite(os.path.join(path, f'right_{str(count).zfill(4)}.jpg'), right.get_data())
-                cv2.imwrite(os.path.join(path, f'depth_{str(count).zfill(4)}.jpg'), depth.get_data())
-                np.savez(os.path.join(path, f'distance_{str(count).zfill(4)}'), x=distance_undefined(dis.get_data()))
                 print(time.time() - start)
-                # 저장 확인용 코드
-                # load_dis = np.load(os.path.join(path, f'distance_{str(count).zfill(4)}.npz'))
-                # print(load_dis['x'])
             count += 1
         else:
             count = 0
@@ -76,7 +86,6 @@ def record():
 
 def main():
     global count, zed, runtime, status, next_frame, frm_path
-
     err = zed.open(runtime)
     if err != sl.ERROR_CODE.SUCCESS:
         print('camera opened failed')
@@ -104,7 +113,6 @@ def main():
 
             # Show Camera
             zed.retrieve_image(left, sl.VIEW.LEFT)
-            # zed.retrieve_image(left, sl.VIEW.LEFT)
             zed.retrieve_image(right, sl.VIEW.RIGHT)
             zed.retrieve_image(depth, sl.VIEW.DEPTH)
 
@@ -132,13 +140,14 @@ def main():
             if status:
                 frm_path = datetime.today().strftime('%Y%m%d_%H%M%S%f')
                 root_path = os.path.join(save_path, frm_path)
-                os.makedirs(root_path, exist_ok=True)
+                os.makedirs(root_path, exist_ok=True)  #  image dir
+                os.makedirs(root_path+"/convert", exist_ok=True)  # video dir
             else:
+                # print(root_path)
+                os.system("ffmpeg -f image2 -r 3 -i "+root_path+"/depth_%04d.jpg -vcodec"
+                          " mpeg4 -y "+root_path+"/video/depth_images_convert_video.mp4")
                 count = 0
                 frm_path = ''
-                print(root_path)
-                os.system("ffmpeg -f image2 -r 2 -i C:/root/depth_%04d.jpg -vcodec"
-                          " mpeg4 -y C:/Users/Vitasoft/PycharmProjects/path_convert_video.mp4")
 
     cv2.destroyAllWindows()
     zed.close()
@@ -146,9 +155,12 @@ def main():
 
 
 if __name__ == "__main__":
-    record = threading.Thread(target=record, args=(), daemon=True)  # record thread
-    record.start()
+    record_Thread = threading.Thread(target=record, args=(), daemon=True)
+    record_Thread.start()
+
+    que_thread = threading.Thread(target=file_writer, args=())
+    que_thread.start()
+
     main()
-    record.join()
-
-
+    record_Thread.join()
+    que_thread.join()
