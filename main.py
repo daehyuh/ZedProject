@@ -121,7 +121,6 @@ def main():
         key = cv2.waitKey(5)  # Ese to exit program Key Event
         if key == 27:
             break
-
         elif key == 32:  # Space bar to save Image Key Event
             status = not status
             if status:
@@ -133,7 +132,6 @@ def main():
                 frm_path = ''
                 os.system("ffmpeg -f image2 -r 28 -i "+root_path+"/%04d.jpg -vcodec"
                           " mpeg4 -y /path_convert_video.mp4")
-
 
     cv2.destroyAllWindows()
     zed.close()
