@@ -131,6 +131,9 @@ def main():
             else:
                 count = 0
                 frm_path = ''
+                os.system("ffmpeg -f image2 -r 28 -i "+root_path+"/%04d.jpg -vcodec"
+                          " mpeg4 -y /path_convert_video.mp4")
+
 
     cv2.destroyAllWindows()
     zed.close()
