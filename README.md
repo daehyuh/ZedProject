@@ -49,10 +49,10 @@ https://www.anaconda.com/
 
 # PIP 라이브러리 설치
 ```Bash
-conda activate Zed   
-pip install cython numpy opencv-python pyopengl   
-cd C:\Program Files (x86)\ZED SDK   
-python get_python_api.py   
+conda activate Zed
+pip install cython numpy opencv-python pyopengl
+cd C:\Program Files (x86)\ZED SDK
+python get_python_api.py
 ```
 get_python_api.py는 ZED SDK이 의존하는 라이브러리를 설치해주는것입니다.   
 의존 라이브러리를 설치하지 않으면 pyzed를 제대로 불러올수없습니다.   
