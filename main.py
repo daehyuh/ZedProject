@@ -5,6 +5,7 @@ import numpy as np
 import threading
 from datetime import datetime
 import sys
+import time
 
 zed = sl.Camera()
 runtime = sl.InitParameters()  # 객체 생성
@@ -22,6 +23,10 @@ save_path = 'saved_imgs'  # 저장 경로
 frm_path = ''  # 저장 날짜
 count = 0  # 저장 파일 카운트
 
+Left_queue = []
+Right_queue = []
+Depth_queue = []
+
 
 def distance_undefined(nd_array):
     nd_array[nd_array != nd_array] = 0
@@ -33,19 +38,19 @@ def distance_undefined(nd_array):
 def record():
     global count, zed, runtime, status, next_frame
 
+    # Mat
+    left = sl.Mat()
+    right = sl.Mat()
+    depth = sl.Mat()
+    dis = sl.Mat()
+
     while True:
         if status:
-            runtime = sl.RuntimeParameters()
-            runtime.sensing_mode = sl.SENSING_MODE.FILL
-
-            # Mat
-            left = sl.Mat()
-            right = sl.Mat()
-            depth = sl.Mat()
-            dis = sl.Mat()
+            start = time.time()
 
             if zed.grab(runtime) == sl.ERROR_CODE.SUCCESS:
                 # image
+
                 zed.retrieve_image(left, sl.VIEW.LEFT)
                 zed.retrieve_image(right, sl.VIEW.RIGHT)
                 zed.retrieve_image(depth, sl.VIEW.DEPTH)
@@ -55,14 +60,15 @@ def record():
                 path = os.path.join(save_path, frm_path)
 
                 # Save image
+
                 cv2.imwrite(os.path.join(path, f'left_{str(count).zfill(4)}.jpg'), left.get_data())  # to do def
                 cv2.imwrite(os.path.join(path, f'right_{str(count).zfill(4)}.jpg'), right.get_data())
                 cv2.imwrite(os.path.join(path, f'depth_{str(count).zfill(4)}.jpg'), depth.get_data())
                 np.savez(os.path.join(path, f'distance_{str(count).zfill(4)}'), x=distance_undefined(dis.get_data()))
+                print(time.time() - start)
                 # 저장 확인용 코드
                 # load_dis = np.load(os.path.join(path, f'distance_{str(count).zfill(4)}.npz'))
                 # print(load_dis['x'])
-
             count += 1
         else:
             count = 0
@@ -73,7 +79,7 @@ def main():
 
     err = zed.open(runtime)
     if err != sl.ERROR_CODE.SUCCESS:
-        print('failed')
+        print('camera opened failed')
         exit()
     else:
         print('Camera Opened!')
@@ -130,8 +136,9 @@ def main():
             else:
                 count = 0
                 frm_path = ''
-                os.system("ffmpeg -f image2 -r 28 -i "+root_path+"/%04d.jpg -vcodec"
-                          " mpeg4 -y /path_convert_video.mp4")
+                print(root_path)
+                os.system("ffmpeg -f image2 -r 2 -i C:/root/depth_%04d.jpg -vcodec"
+                          " mpeg4 -y C:/Users/Vitasoft/PycharmProjects/path_convert_video.mp4")
 
     cv2.destroyAllWindows()
     zed.close()
@@ -143,3 +150,5 @@ if __name__ == "__main__":
     record.start()
     main()
     record.join()
+
+
