@@ -7,17 +7,19 @@ from datetime import datetime
 import sys
 import time
 from queue import Queue
+import math
 
 zed = sl.Camera()
 runtime = sl.InitParameters()  # 객체 생성
 
-runtime.camera_resolution = sl.RESOLUTION.HD1080
-# runtime.camera_resolution = sl.RESOLUTION.HD2K  # Use HD1080 video mode
-runtime.camera_fps = 60  # Set fps at 60
+# runtime.camera_resolution = sl.RESOLUTION.HD1080
+runtime.camera_resolution = sl.RESOLUTION.HD2K  # Use HD1080 video mode
+runtime.camera_fps = 15  # Set fps at 60
 runtime.coordinate_units = sl.UNIT.METER
-runtime.depth_minimum_distance = 0.15
+runtime.depth_minimum_distance = 0.2
 runtime.depth_maximum_distance = 40
-runtime.depth_mode = sl.DEPTH_MODE.ULTRA  # depth 해상도 ULTRA
+runtime.sdk_verbose = True
+runtime.depth_mode = sl.DEPTH_MODE.PERFORMANCE   # depth 해상도 PERFORMANCE
 
 status = False  # 키 입력 확인
 next_frame = False  # 카메라 확인
@@ -43,7 +45,10 @@ def file_writer():
             for key, value in que_dict.items():
                 # print(value)
                 if key == "dis":
-                    np.savez(value[0], x=value[1])
+                    np.savez(value[0], x=distance_undefined(value[1]))
+                    # np.savetxt("test.out", value[1], delimiter=',')
+                    load_dis = np.load(value[0])
+                    print(np.min(load_dis['x']), np.max(load_dis['x']))
                 else:
                     cv2.imwrite(value[0], value[1])
 
@@ -78,12 +83,10 @@ def record():
                 que.put({'depth': [os.path.join(path, f'depth_{str(count).zfill(4)}.jpg'), depth.get_data()]})
                 que.put({'dis': [os.path.join(path, f'distance_{str(count).zfill(4)}.npz'),
                                  distance_undefined(dis.get_data())]})
+                print(count, np.min(dis.get_data()), np.max(distance_undefined(dis.get_data())))
+                
 
-                print(np.max(distance_undefined(dis.get_data())))
-                print(distance_undefined(dis.get_data()).shape)
-                print(left.get_data().shape)
 
-                # print(time.time() - start)
             count += 1
         else:
             count = 0
@@ -104,6 +107,7 @@ def main():
     left = sl.Mat()
     right = sl.Mat()
     depth = sl.Mat()
+    point_cloud = sl.Mat()
     # Get image
     image_size = zed.get_camera_information().camera_resolution
     print(f'original width : {image_size.width}px\noriginal height : {image_size.height}px')
@@ -112,6 +116,7 @@ def main():
     image_size.height = image_size.height / 2.5
     print(f'resized width : {image_size.width}px\nresized height : {image_size.height}px')
 
+    sensors_data = sl.SensorsData()
     while True:
         if zed.grab(runtime) == sl.ERROR_CODE.SUCCESS:
             next_frame = True
@@ -120,6 +125,7 @@ def main():
             zed.retrieve_image(left, sl.VIEW.LEFT)
             zed.retrieve_image(right, sl.VIEW.RIGHT)
             zed.retrieve_image(depth, sl.VIEW.DEPTH)
+            zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA)
 
             resized_left = cv2.resize(left.get_data(), (image_size.width, image_size.height))
             resized_right = cv2.resize(right.get_data(), (image_size.width, image_size.height))
@@ -131,6 +137,12 @@ def main():
             cv2.imshow('ZED_left', resized_left)
             cv2.imshow('ZED_right', resized_right)
             cv2.imshow('ZED_depth', resized_depth)
+
+            # if zed.get_sensors_data(sensors_data, sl.TIME_REFERENCE.CURRENT) == sl.ERROR_CODE.SUCCESS:
+            #     quaternion = sensors_data.get_imu_data().get_pose().get_orientation().get()
+            #     print(" \t Orientation: [ Ox: {0}, Oy: {1}, Oz {2}, Ow: {3} ]".format(quaternion[0], quaternion[1],
+            #                                                                           quaternion[2], quaternion[3]))
+
 
         else:
             cv2.destroyAllWindows()
@@ -150,7 +162,7 @@ def main():
             else:
                 # print(root_path)
                 os.system(
-                    "ffmpeg -f image2 -r 8 -i " + root_path + "/depth_%04d.jpg -vcodec mpeg4 -y " + root_path + "/video/depth_images_convert_video.mp4")
+                    "ffmpeg -f image2 -r 1 -i " + root_path + "/depth_%04d.jpg -vcodec mpeg4 -y " + root_path + "/video/depth_images_convert_video.mp4")
                 count = 0
                 frm_path = ''
 
@@ -160,10 +172,10 @@ def main():
 
 
 if __name__ == "__main__":
-    que_thread = threading.Thread(target=file_writer, args=(), daemon=True)
-    que_thread.start()
     record_Thread = threading.Thread(target=record, args=(), daemon=True)
     record_Thread.start()
+    que_thread = threading.Thread(target=file_writer, args=(), daemon=True)
+    que_thread.start()
     main()
     record_Thread.join()
     que_thread.join()
