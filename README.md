@@ -110,7 +110,7 @@ sudo apt-get install cmake
 
 # opencv 설치
 sudo apt install python-opencv
-
+pip3 install python-opencv
 # 깃에서 프로젝트 클론
 git clone https://github.com/daehyuh318/ZedProject.git
 
