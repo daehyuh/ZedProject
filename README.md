@@ -97,3 +97,11 @@ ZED가 메모리를 먹고있는지 확인
 이미지 > 영상변환 추가
 파일저장 큐 자료구조 방식 변경
 
+
+
+import pyzed.sl as sl
+
+sudo apt install git
+
+git clone https://github.com/daehyuh318/ZedProject.git
+
