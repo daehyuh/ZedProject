@@ -102,6 +102,7 @@ ZED가 메모리를 먹고있는지 확인
 import pyzed.sl as sl
 
 sudo apt install git
+pip3 install opencv-python
 
 git clone https://github.com/daehyuh318/ZedProject.git
 
