@@ -98,11 +98,28 @@ ZED가 메모리를 먹고있는지 확인
 파일저장 큐 자료구조 방식 변경
 
 
-
-import pyzed.sl as sl
-
+```bash
+# 깃 설치
 sudo apt install git
-pip3 install opencv-python
 
+# opencv 오류 대비 설치
+python -m pip install --upgrade pip
+sudo apt-get install python3-setuptools
+pip3 install scikit-build
+sudo apt-get install cmake
+
+# opencv 설치
+sudo apt install python-opencv
+
+# 깃에서 프로젝트 클론
 git clone https://github.com/daehyuh318/ZedProject.git
+
+cd ZedProject
+python3 main.py
+```
+
+
+# gaon a i gu hae 
+pyhton3
+import 
 
