@@ -158,8 +158,8 @@ def main():
                 os.makedirs(root_path + "/video", exist_ok=True)  # video dir
             else:
                 # print(root_path)
-                os.system(
-                    "ffmpeg -f image2 -r 5 -i " + root_path + "/depth_%04d.jpg -vcodec mpeg4 -y " + root_path + "/video/depth_images_convert_video.mp4")
+                # os.system(
+                #     "ffmpeg -f image2 -r 5 -i " + root_path + "/depth_%04d.jpg -vcodec mpeg4 -y " + root_path + "/video/depth_images_convert_video.mp4")
                 count = 0
                 frm_path = ''
 
