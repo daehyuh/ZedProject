@@ -150,7 +150,7 @@ def main():
             else:
                 # print(root_path)
                 os.system(
-                    "ffmpeg -f image2 -r 8 -i " + root_path + "/depth_%04d.jpg -vcodec mpeg4 -y " + root_path + "/video/depth_images_convert_video.mp4")
+                    "ffmpeg -f image2 -r 5 -i " + root_path + "/depth_%04d.jpg -vcodec mpeg4 -y " + root_path + "/video/depth_images_convert_video.mp4")
                 count = 0
                 frm_path = ''
 
