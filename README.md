@@ -5,15 +5,16 @@
 > > ### 담당자 강대현
 
 # main.py   
-## Zed2 카메라 센서로 Left, Right, Depth, 거리배열를 저장하는 코드입니다   
+## Zed2 카메라 센서로 왼쪽, 오른쪽, Depth, 거리, 기울기 데이터를 저장하는 코드입니다     
 ### 저장 / 저장종료 : SpaceBar
 ### 프로그램 종료 : ESC   
 ```python
 > # 저장경로
->> Left : saved_imgs/시간/left_{str(count).zfill(4)}.jpg   
->> Right : saved_imgs/시간/right_{str(count).zfill(4)}.jpg   
->> Depth : saved_imgs/시간/depth_{str(count).zfill(4)}.jpg   
->> distance : saved_imgs/시간/dis_{str(count).zfill(4)}.npz   
+>> 왼쪽 : saved_img/날짜/left_{str(count).zfill(4)}.jpg   
+>> 오른쪽 : saved_img/날짜/right_{str(count).zfill(4)}.jpg   
+>> Depth : saved_img/날짜/depth_{str(count).zfill(4)}.jpg   
+>> 거리 : saved_img/날짜/dis_{str(count).zfill(4)}.npy
+>> 기울기 : saved_img/날짜/slope_{str(count).zfill(4)}.npy
 ```
 
 
