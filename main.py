@@ -5,8 +5,9 @@ import numpy as np
 import threading
 from datetime import datetime
 import sys
-import time
 from queue import Queue
+from numpy import inf
+
 
 zed = sl.Camera()
 runtime = sl.InitParameters()  # 객체 생성
@@ -21,17 +22,24 @@ runtime.depth_mode = sl.DEPTH_MODE.ULTRA  # depth 해상도 ULTRA
 
 status = False  # 키 입력 확인
 next_frame = False  # 카메라 확인
-save_path = 'saved_imgs'  # 저장 경로
+save_path = 'saved_img'  # 저장 경로
 frm_path = ''  # 저장 날짜
 count = 0  # 저장 파일 카운트
 
 que = Queue()
 
 
+def DepthNormalizing(data):
+    max_data, min_data = np.max(data), np.min(data)
+    data = (data - min_data) / (max_data - min_data) * 255
+    return data
+
+
 def distance_undefined(nd_array):
-    nd_array[nd_array != nd_array] = 0
-    nd_array[nd_array == np.float32('-inf')] = -1  #
-    nd_array[nd_array == np.float32('inf')] = 4000.0000
+    # nd_array[np.isnan(nd_array)] = 0
+    nd_array[nd_array == inf] = 0
+    nd_array[nd_array == -inf] = 0
+    np.nan_to_num(nd_array)
     return nd_array
 
 
@@ -41,9 +49,10 @@ def file_writer():
         if not que.empty():
             que_dict = que.get()
             for key, value in que_dict.items():
-                # print(value)
                 if key == "dis":
-                    np.savez(value[0], x=value[1])
+                    np.savez(value[0], x=DepthNormalizing(value[1]))
+                    # print(np.max(DepthNormalizing(value[1])))  # 정규화 확인
+                    # print((DepthNormalizing(value[1])))
                 else:
                     cv2.imwrite(value[0], value[1])
 
@@ -59,7 +68,6 @@ def record():
 
     while True:
         if status:
-            start = time.time()
 
             if zed.grab(runtime) == sl.ERROR_CODE.SUCCESS:
                 # image
@@ -79,11 +87,6 @@ def record():
                 que.put({'dis': [os.path.join(path, f'distance_{str(count).zfill(4)}.npz'),
                                  distance_undefined(dis.get_data())]})
 
-                print(np.max(distance_undefined(dis.get_data())))
-                print(distance_undefined(dis.get_data()).shape)
-                print(left.get_data().shape)
-
-                # print(time.time() - start)
             count += 1
         else:
             count = 0
