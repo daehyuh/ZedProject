@@ -17,6 +17,32 @@
 ```
 
 
+# Ubuntu 18.04 환경설정   
+
+# Cuda 11.5
+
+CUDA 버전 확인 
+> nvcc --version
+```bash 
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pinsudo 
+mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+wget https://developer.download.nvidia.com/compute/cuda/11.5.0/local_installers/cuda-repo-ubuntu1804-11-5-local_11.5.0-495.29.05-1_amd64.deb
+sudo dpkg -i cuda-repo-ubuntu1804-11-5-local_11.5.0-495.29.05-1_amd64.debsudo apt-key add /var/cuda-repo-ubuntu1804-11-5-local/7fa2af80.pub
+sudo apt-get update
+sudo apt-get -y install cuda
+```
+
+# ZED SDK 11.5
+https://www.stereolabs.com/docs/installation/linux/
+
+
+
+
+
+
+
+
+
 # Windows 환경설정   
 #### GTX1650 GPU 호환 버전 환경설정 (아주 낮은 GPU가 아니라면 대부분 문제없음)
 
@@ -70,4 +96,30 @@ ZED가 메모리를 먹고있는지 확인
 5/23
 이미지 > 영상변환 추가
 파일저장 큐 자료구조 방식 변경
+
+
+```bash
+# 깃 설치
+sudo apt install git
+
+# opencv 오류 대비 설치
+python -m pip install --upgrade pip
+sudo apt-get install python3-setuptools
+pip3 install scikit-build
+sudo apt-get install cmake
+
+# opencv 설치
+sudo apt install python-opencv
+pip3 install python-opencv
+# 깃에서 프로젝트 클론
+git clone https://github.com/daehyuh318/ZedProject.git
+
+cd ZedProject
+python3 main.py
+```
+
+
+# gaon a i gu hae 
+pyhton3
+import 
 
