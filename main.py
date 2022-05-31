@@ -107,8 +107,9 @@ def main():
     runtime.sensing_mode = sl.SENSING_MODE.FILL
 
     left = sl.Mat()
-    right = sl.Mat()
-    depth = sl.Mat()
+    # right = sl.Mat()
+    # depth = sl.Mat()
+
     # Get image
     image_size = zed.get_camera_information().camera_resolution
     print(f'original width : {image_size.width}px\noriginal height : {image_size.height}px')
