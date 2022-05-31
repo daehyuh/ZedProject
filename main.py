@@ -8,17 +8,18 @@ import sys
 from queue import Queue
 from numpy import inf
 
-
 zed = sl.Camera()
 runtime = sl.InitParameters()  # 객체 생성
 
-runtime.camera_resolution = sl.RESOLUTION.HD1080
+runtime.camera_resolution = sl.RESOLUTION.HD2K
 # runtime.camera_resolution = sl.RESOLUTION.HD2K  # Use HD1080 video mode
-runtime.camera_fps = 60  # Set fps at 60
+runtime.camera_fps = 15  # Set fps at 60
 runtime.coordinate_units = sl.UNIT.METER
 runtime.depth_minimum_distance = 0.15
 runtime.depth_maximum_distance = 40
 runtime.depth_mode = sl.DEPTH_MODE.ULTRA  # depth 해상도 ULTRA
+
+sensors_data = sl.SensorsData()
 
 status = False  # 키 입력 확인
 next_frame = False  # 카메라 확인
@@ -49,17 +50,14 @@ def file_writer():
         if not que.empty():
             que_dict = que.get()
             for key, value in que_dict.items():
-                if key == "dis":
-                    np.savez(value[0], x=DepthNormalizing(value[1]))
-                    # print(np.max(DepthNormalizing(value[1])))  # 정규화 확인
-                    # print((DepthNormalizing(value[1])))
+                if key == "dis" or key == "slope":
+                    np.save(value[0], value[1])
                 else:
                     cv2.imwrite(value[0], value[1])
 
 
 def record():
     global count, zed, runtime, status, next_frame
-
     # Mat
     left = sl.Mat()
     right = sl.Mat()
@@ -67,26 +65,30 @@ def record():
     dis = sl.Mat()
 
     while True:
-        if status:
-
+        if status:  # 스페이스바를 누를떼
             if zed.grab(runtime) == sl.ERROR_CODE.SUCCESS:
-                # image
-
-                zed.retrieve_image(left, sl.VIEW.LEFT)
+                path = os.path.join(save_path, frm_path)
+                # set data
+                zed.retrieve_image(left, sl.VIEW.LEFT)  # images
                 zed.retrieve_image(right, sl.VIEW.RIGHT)
                 zed.retrieve_image(depth, sl.VIEW.DEPTH)
-                # distance
-                zed.retrieve_measure(dis, sl.MEASURE.DEPTH)
+                zed.retrieve_measure(dis, sl.MEASURE.DEPTH)  # distance
+                zed.get_sensors_data(sensors_data, sl.TIME_REFERENCE.CURRENT)  # 기울기 센서
 
-                path = os.path.join(save_path, frm_path)
+                # get data
+                left = left.get_data()
+                right = right.get_data()
+                depth = depth.get_data()
+                dis = distance_undefined(dis.get_data())
+                dis = DepthNormalizing(dis)
+                quaternion = sensors_data.get_imu_data().get_pose().get_orientation().get()
 
                 # Save image
-                que.put({'left': [os.path.join(path, f'left_{str(count).zfill(4)}.jpg'), left.get_data()]})
-                que.put({'right': [os.path.join(path, f'right_{str(count).zfill(4)}.jpg'), right.get_data()]})
-                que.put({'depth': [os.path.join(path, f'depth_{str(count).zfill(4)}.jpg'), depth.get_data()]})
-                que.put({'dis': [os.path.join(path, f'distance_{str(count).zfill(4)}.npz'),
-                                 distance_undefined(dis.get_data())]})
-
+                que.put({'left': [os.path.join(path, f'left_{str(count).zfill(4)}.jpg'), left]})
+                que.put({'right': [os.path.join(path, f'right_{str(count).zfill(4)}.jpg'), right]})
+                que.put({'depth': [os.path.join(path, f'depth_{str(count).zfill(4)}.jpg'), depth]})
+                que.put({'dis': [os.path.join(path, f'distance_{str(count).zfill(4)}.npy'), dis]})
+                que.put({'slope': [os.path.join(path, f'slope_{str(count).zfill(4)}.npy'), quaternion]})
             count += 1
         else:
             count = 0
@@ -96,10 +98,10 @@ def main():
     global count, zed, runtime, status, next_frame, frm_path
     err = zed.open(runtime)
     if err != sl.ERROR_CODE.SUCCESS:
-        print('camera opened failed')
+        print('카메라가 연결되어있지 않거나, 이미 켜져있습니다')
         exit()
     else:
-        print('Camera Opened!')
+        print('카메라 연결 성공!')
 
     runtime = sl.RuntimeParameters()
     runtime.sensing_mode = sl.SENSING_MODE.FILL
@@ -116,24 +118,28 @@ def main():
     print(f'resized width : {image_size.width}px\nresized height : {image_size.height}px')
 
     while True:
+
         if zed.grab(runtime) == sl.ERROR_CODE.SUCCESS:
             next_frame = True
 
             # Show Camera
             zed.retrieve_image(left, sl.VIEW.LEFT)
-            zed.retrieve_image(right, sl.VIEW.RIGHT)
-            zed.retrieve_image(depth, sl.VIEW.DEPTH)
+            # zed.retrieve_image(right, sl.VIEW.RIGHT)
+            # zed.retrieve_image(depth, sl.VIEW.DEPTH)
 
             resized_left = cv2.resize(left.get_data(), (image_size.width, image_size.height))
-            resized_right = cv2.resize(right.get_data(), (image_size.width, image_size.height))
-            resized_depth = cv2.resize(depth.get_data(), (image_size.width, image_size.height))
+            # resized_right = cv2.resize(right.get_data(), (image_size.width, image_size.height))
+            # resized_depth = cv2.resize(depth.get_data(), (image_size.width, image_size.height))
 
-            cv2.putText(resized_depth, str(count), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 3)
-            cv2.putText(resized_left, 'Zed Left', (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 3)
-            cv2.putText(resized_right, 'Zed Right', (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 3)
+            cv2.putText(resized_left, str(count), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 3)
+
+            # cv2.putText(resized_depth, str(count), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 3)
+            # cv2.putText(resized_left, 'Zed Left', (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 3)
+            # cv2.putText(resized_right, 'Zed Right', (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 3)
+
             cv2.imshow('ZED_left', resized_left)
-            cv2.imshow('ZED_right', resized_right)
-            cv2.imshow('ZED_depth', resized_depth)
+            # cv2.imshow('ZED_right', resized_right)
+            # cv2.imshow('ZED_depth', resized_depth)
 
         else:
             cv2.destroyAllWindows()
