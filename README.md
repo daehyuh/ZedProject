@@ -132,8 +132,3 @@ cd ZedProject
 python3 main.py
 ```
 
-
-# gaon a i gu hae 
-pyhton3
-import 
-
